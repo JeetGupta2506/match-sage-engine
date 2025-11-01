@@ -3,7 +3,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MatchStats } from "./dashboard/MatchStats";
 import { PlayerImpact } from "./dashboard/PlayerImpact";
 import { MomentumChart } from "./dashboard/MomentumChart";
-import { AIInsights } from "./dashboard/AIInsights";
 
 export const Dashboard = () => {
   return (
@@ -24,17 +23,14 @@ export const Dashboard = () => {
 
         <TabsContent value="match" className="space-y-6">
           <MatchStats />
-          <AIInsights />
         </TabsContent>
 
         <TabsContent value="player" className="space-y-6">
           <PlayerImpact />
-          <AIInsights />
         </TabsContent>
 
         <TabsContent value="momentum" className="space-y-6">
           <MomentumChart />
-          <AIInsights />
         </TabsContent>
       </Tabs>
     </section>

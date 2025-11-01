@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MessageSquare, Send, Bot, User } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { callSportsAnalyst } from "@/lib/api";
 
 type Message = {
   role: "user" | "assistant";
@@ -39,32 +39,28 @@ export const ChatInterface = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('sports-analyst', {
-        body: { 
-          messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content }))
-        }
-      });
-
-      if (error) {
-        if (error.message?.includes('429')) {
-          toast.error("Rate limit exceeded. Please try again in a moment.");
-        } else if (error.message?.includes('402')) {
-          toast.error("AI usage limit reached. Please add credits to continue.");
-        } else {
-          toast.error("Failed to get response. Please try again.");
-        }
-        console.error('Error:', error);
-        return;
-      }
+      const response = await callSportsAnalyst(
+        [...messages, userMessage].map(m => ({ role: m.role, content: m.content }))
+      );
 
       const assistantMessage: Message = {
         role: "assistant",
-        content: data.response
+        content: response
       };
       setMessages(prev => [...prev, assistantMessage]);
-    } catch (err) {
-      console.error('Unexpected error:', err);
-      toast.error("An unexpected error occurred.");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      
+      if (errorMessage.includes('429') || errorMessage.includes('Rate limit')) {
+        toast.error("Rate limit exceeded. Please try again in a moment.");
+      } else if (errorMessage.includes('402') || errorMessage.includes('usage limit')) {
+        toast.error("AI usage limit reached. Please add credits to continue.");
+      } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+        toast.error("Cannot connect to backend. Make sure the API server is running.");
+      } else {
+        toast.error("Failed to get response. Please try again.");
+      }
+      console.error('Error:', error);
     } finally {
       setIsLoading(false);
     }
